@@ -5,8 +5,6 @@ Code for paper "An Operator-Based Approach to Signal Temporal Logics"
 ### Repeated Nested Formula for Affine System 
 ![Demo Animation](./RESULTS_AFFINE/results_aff_1.gif "Live Demo")
 
-*(You can store images and GIFs in an `assets/` folder inside your repository.)*
-
 ---
 
 ## 🚀 Features
