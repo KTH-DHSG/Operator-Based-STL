@@ -5,10 +5,10 @@ Code for paper "An Operator-Based Approach to Signal Temporal Logics"
 ### Repeated Nested Formula for Affine System 
 ![anim1](./RESULTS_AFFINE/results_aff_1.gif "anim1")
 
-### Repeated Nested Formule for Non-Affine System 
+### Repeated Nested Formula for Non-Affine System 
 ![anim2](./RESULTS_NONAFFINE/results_nonaff_1.gif "anim2")
 
-### Repeated Nested Formule for Non-Affine System with Nested Disjunction
+### Repeated Nested Formula for Non-Affine System with Nested Disjunction
 - Reference Input Positive 
 ![anim2](./RESULTS_NONAFFINE/results_nonaff_2a.gif "anim2")
 - Reference Input Negative 
