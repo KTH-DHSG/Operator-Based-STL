@@ -2,13 +2,8 @@
 Code for paper "An Operator-Based Approach to Signal Temporal Logics"
 ---
 
-## 📸 Preview
-
-### Image Example
-![Project Screenshot](./assets/screenshot.png "Screenshot Description")
-
 ### GIF Example
-![Demo Animation](./assets/demo.gif "Live Demo")
+![Demo Animation](./RESULTS\AFFINE/results_aff_1.gif "Live Demo")
 
 *(You can store images and GIFs in an `assets/` folder inside your repository.)*
 
