@@ -18,18 +18,9 @@ Code for paper "An Operator-Based Approach to Signal Temporal Logics"
 
 ---
 
-## 🚀 Features
-
-- Clear and concise bullet points describing your main features  
-- Example: *Real-time rendering with GPU acceleration*  
-- Example: *Modular architecture for batch video processing*  
+## Briefly
 
 ---
 
-## 🧭 Getting Started
+## Running the Code
 
-Briefly explain how users can set up or run your project:
-
-1. Clone this repository  
-   ```bash
-   git clone https://github.com/yourusername/your-repo-name.git
