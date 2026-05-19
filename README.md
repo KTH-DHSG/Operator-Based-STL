@@ -1,6 +1,8 @@
 # Operator-Based-STL
-Code for paper "An Operator-Based Approach to Signal Temporal Logics"
 ---
+## Code for paper "An Operator-Based Approach to Signal Temporal Logics"
+This repository contains the code for reproducing the results found in the paper "An Operator-Based Approach to Signal Temporal Logics". The method concentrates on a novel approach for control and verification of complex nested STL formulae for dynamical systems based on reachability analysis. 
+
 
 ### Repeated Nested Formula for Non-Affine System 
 ![anim2a](./RESULTS_NONAFFINE/results_nonaff_1.gif "anim2a")
@@ -23,11 +25,6 @@ Code for paper "An Operator-Based Approach to Signal Temporal Logics"
 - Doubly Repeated Formula
 ![anim1c](./RESULTS_AFFINE/results_aff_3.gif "anim1c")
 
----
-
-## Briefly
-
----
 
 ## Running the Code
-
+Running the files starting with "run_(...).m" in each subfolder reproduces the respective figures. 
