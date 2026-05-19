@@ -3,6 +3,12 @@
 ## Code for paper "An Operator-Based Approach to Signal Temporal Logics"
 This repository contains the code for reproducing the results found in the paper "An Operator-Based Approach to Signal Temporal Logics". The method concentrates on a novel approach for control and verification of complex nested STL formulae for dynamical systems based on reachability analysis. 
 
+## Running the Code
+Cloning the repository and running the files like: 
+```run_sys_lin.m``` 
+in each subfolder reproduces the respective figures. 
+
+---
 
 ### Repeated Nested Formula for Non-Affine System 
 ![anim2a](./RESULTS_NONAFFINE/results_nonaff_1.gif "anim2a")
@@ -26,7 +32,3 @@ This repository contains the code for reproducing the results found in the paper
 ![anim1c](./RESULTS_AFFINE/results_aff_3.gif "anim1c")
 
 
-## Running the Code
-Cloning the repository and running the files like: 
-```run_sys_lin.m``` 
-in each subfolder reproduces the respective figures. 
