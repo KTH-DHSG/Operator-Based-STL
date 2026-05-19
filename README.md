@@ -27,4 +27,6 @@ This repository contains the code for reproducing the results found in the paper
 
 
 ## Running the Code
-Running the files starting with "run_(...).m" in each subfolder reproduces the respective figures. 
+Cloning the repository and running the files like: 
+```run_sys_lin.m``` 
+in each subfolder reproduces the respective figures. 
