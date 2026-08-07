@@ -6,7 +6,7 @@ odeopts = odeset('RelTol',1e-3,'AbsTol',1e-4);
 odeopts_pl = odeset('RelTol',1e-5,'AbsTol',1e-5,'Refine',5);
 RGB = orderedcolors("gem12");
 haxis_lims = [-0.75, 2.25];
-filename = 'results_qp_1.gif';
+filename = 'results_aff_1.gif';
 savegif = 0;
 
 % TIME DOMAIN BOUNDS
@@ -20,10 +20,10 @@ ubound = 0.5;
 
 % TIME STL PARAMS 
 t01 = 0;
-t02 = 25;
+t02 = 15;
 
-t11 = 3.0;
-t12 = 4.0;
+t11 = 0.0;
+t12 = 5.0;
 
 t21 = 1.0;
 t22 = 2.0;
@@ -37,7 +37,7 @@ t42 = 10.0;
 t51 = 0;
 t52 = 0.5;
 
-title_text = sprintf('$ G_{[%2.1f,%2.1f]} \\left(  F_{[%2.1f,%2.1f]} \\left( \\mu_1 U_{[%2.1f,%2.1f]} \\left( F_{[%2.1f,%2.1f]} \\mu_2 \\right)\\right) \\right)$',...
+title_text = sprintf('$ G_{[%2.1f,%2.1f]} \\left(   F_{[%2.1f,%2.1f]} \\left( \\mu_1 U_{[%2.1f,%2.1f]} \\left( F_{[%2.1f,%2.1f]} \\mu_2 \\right) \\right) \\right)$',...
                         t01,t02,t11,t12, t21,t22, t31,t32);
 
 % PREDICATE FUNCTIONS
@@ -64,7 +64,7 @@ pred(1).b0_list_ini = pred(1).b0_list;
 
 pred(1).te_list_depends = [1,0,0,0,0,0;
                            1,1,0,0,0,0];
-pred(1).b1 = pred(1).tr_list_depends(end,:);
+pred(1).b1 = pred(1).te_list_depends(end,:);
 pred(1).te = @(tau) pred(1).b0 + pred(1).b1*tau;
 pred(1).te_list = @(tau) pred(1).b0_list + pred(1).te_list_depends*tau;
 
@@ -98,7 +98,7 @@ pred(2).b0_list_ini = pred(2).b0_list;
 pred(2).te_list_depends = [0,0,1,0,0,0;
                            0,0,1,1,0,0;
                            0,0,1,1,1,0];
-pred(2).b1 = pred(2).tr_list_depends(end,:);
+pred(2).b1 = pred(2).te_list_depends(end,:);
 pred(2).te = @(tau) pred(2).b0 + pred(2).b1*tau;
 pred(2).te_list = @(tau) pred(2).b0_list + pred(2).te_list_depends*tau;
 
@@ -172,12 +172,12 @@ state_traj = x0;
 time_traj = t0;
 
 % SIMULATION STEP SIZE
-dt = 1e-2;
+dt = 5e-3;
 % MAX STATE STEP SIZE 
 max_dx = 5e-3;
 % VARIABLES FOR PLOTTING 
 iter = 1;
-plotiter = 20;
+plotiter = 50;
 L1 = legend(legend_text,'Location','northeast','NumColumns',3);
 L1.Interpreter = 'latex'; L1.FontSize = 14;
 T = title(title_text);
@@ -197,14 +197,15 @@ end
 axis([t0,tfinal, min(lb_tau), max(ub_tau)]);
 L2 = legend(legend_text2,'Location','northeast','NumColumns',length(tau_hat));
 L2.Interpreter = 'latex'; L2.FontSize = 16;
-
+taufix = zeros(size(taucur));
 %% ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 %                           MAIN SIMULATION LOOP
 % ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+sumt1 = 0;
 while tcur < tfinal
     
     % COMPUTE CONTROLLER INPUT
-    [ucur,omegac] = ucon(xcur,tcur,taucur,Ahat,Ahat_inv,lb_tau,ub_tau,f,g,pred,ubound,odeopts);
+    [ucur,omegac] = ucon(xcur,tcur,taucur,taufix,Ahat,Ahat_inv,lb_tau,ub_tau,f,g,pred,ubound,odeopts);
     dx = (f(xcur) + g(xcur)*ucur);
 
     % CONTROL STATE STEP SIZE & UPDATE DT
@@ -226,24 +227,30 @@ while tcur < tfinal
     for j=1:length(pred)
         [sat_flag,lb_tau,ub_tau,pred(j).flag_r,pred(j).flag_e] = check_sat(tcur,xprev,xcur,pred(j),lb_tau,ub_tau,taucur,Ahat_inv,j);
     end
+    pred(2).h(xprev)
 
     % DISPLAY 
-    fprintf("Time = %3.2f of %3.2f , Step Size = %3.2e, Prd Vals: %2.3e | %2.3e | %2.3e \n",tcur,tfinal,dtc,pred(1).h(xcur),pred(2).h(xcur),pred(3).h(xcur));
+    fprintf("Time = %3.2f of %3.2f , Step Size = %3.2e, Prd Vals: %2.3e | %2.3e \n",tcur,tfinal,dtc,pred(1).h(xcur),pred(2).h(xcur));
 
 
     % CUSTOM FOR REPEAT
+    if  pred(1).te(taucur) <= tcur  && tcur <= pred(2).tr(taucur)
+        taufix(1:4) = 1;
+    end
     if sat_flag(2)
+            sumt1 = sumt1 + taucur(1);
             beta_curr = pred(2).te(taucur);
             beta_prime = t02;
-            if beta_curr<beta_prime
-                pred(1).a0 = pred(1).a0_ini + beta_curr;
-                pred(1).a0_list = pred(1).a0_list_ini + beta_curr;
+            if sumt1 < t02%beta_curr<beta_prime
+                beta_curr1 = sum(pred(1).tr_list_depends(end,:)*taucur);
+                pred(1).a0 = pred(1).a0 + beta_curr1;
+                pred(1).a0_list = pred(1).a0_list + beta_curr1;
               
                 pred(1).tr = @(tau) pred(1).a0 + pred(1).a1*tau;
                 pred(1).tr_list = @(tau)  pred(1).a0_list + pred(1).tr_list_depends*tau;
                 
-                pred(1).b0 = pred(1).b0_ini + beta_curr;
-                pred(1).b0_list = pred(1).b0_list_ini + beta_curr;
+                pred(1).b0 = pred(1).b0 + beta_curr1;
+                pred(1).b0_list = pred(1).b0_list + beta_curr1;
 
                 pred(1).te = @(tau) pred(1).b0 + pred(1).b1*tau;
                 pred(1).te_list = @(tau) pred(1).b0_list + pred(1).te_list_depends*tau;
@@ -251,14 +258,15 @@ while tcur < tfinal
                 pred(1).flag_r = 0*pred(1).flag_r;
                 pred(1).flag_e = 0*pred(1).flag_e;
                 % ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-                pred(2).a0 = pred(2).a0_ini + beta_curr;
-                pred(2).a0_list = pred(2).a0_list_ini + beta_curr;
+                beta_curr2 = sum(pred(1).tr_list_depends(end,:)*taucur);
+                pred(2).a0 = pred(2).a0 + beta_curr2;
+                pred(2).a0_list = pred(2).a0_list + beta_curr2;
               
                 pred(2).tr = @(tau) pred(2).a0 + pred(2).a1*tau;
                 pred(2).tr_list = @(tau)  pred(2).a0_list + pred(2).tr_list_depends*tau;
                 
-                pred(2).b0 = pred(2).b0_ini + beta_curr;
-                pred(2).b0_list = pred(2).b0_list_ini + beta_curr;
+                pred(2).b0 = pred(2).b0 + beta_curr2;
+                pred(2).b0_list = pred(2).b0_list + beta_curr2;
 
                 pred(2).te = @(tau) pred(2).b0 + pred(2).b1*tau;
                 pred(2).te_list = @(tau) pred(2).b0_list + pred(2).te_list_depends*tau;
@@ -268,6 +276,8 @@ while tcur < tfinal
 
                 lb_tau = [0;0;0;0];
                 ub_tau = [t12 - t11; t22 - t21; t32 - t31; t42 - t41];
+                % taucur = Ahat*ub_tau;
+                taufix(:) = 0;
 
             end
     end
@@ -276,6 +286,8 @@ while tcur < tfinal
     tcur = tcur + dtc;
 
     % SAVE DATA
+    tau_hat = Ahat_inv*taucur;
+    taucur = Ahat*tau_hat;
     state_traj(end+1) = xcur;
     time_traj(end+1) = tcur;
 
@@ -329,11 +341,11 @@ function [sat_flag,lb_tau,ub_tau,flag_r,flag_e] = check_sat(t,xprev,xcur,pred,lb
 
     tau_hat = Ahat_inv*tau;
 
-    eps = 1e-2;
+    eps = 1.5e-1;
     hprev = pred.h(xprev);
     hcur = pred.h(xcur);
     % CHECK PREDICATE REACHING
-    if hprev<=0 && hcur>=0
+    if hprev<=eps && hcur>=-eps
         % CHECK TIMINGS 
         tr = pred.tr_list(tau);
         % RUN THROUGH PATH TIMINGS
@@ -343,14 +355,14 @@ function [sat_flag,lb_tau,ub_tau,flag_r,flag_e] = check_sat(t,xprev,xcur,pred,lb
             if abs(t - tr(i))<=eps
                 % FIND AND FIX DEPENDENT PARAMETERS
                 tau_hat_flag = Ahat_inv*pred.tr_list_depends(i,:)'>0;
-                lb_tau(tau_hat_flag) = tau_hat(tau_hat_flag);
-                ub_tau(tau_hat_flag) = tau_hat(tau_hat_flag);
+                % lb_tau(tau_hat_flag) = tau_hat(tau_hat_flag);
+                % ub_tau(tau_hat_flag) = tau_hat(tau_hat_flag);
                 flag_r(i) = 1;
             end
         end  
     end
     % CHECK PREDICATE SATISFACTION
-    if hcur>=0
+    if hcur>=-eps
         % CHECK TIMINGS 
         te = pred.te_list(tau);
         % RUN THROUGH PATH TIMINGS
@@ -373,23 +385,43 @@ end
 
 
 % CONTROLLER 
-function [uc,omegac] = ucon(x,t,tau,Ahat,Ahat_inv,lb_tau,ub_tau,f,g,pred,ubound,odeopts)
+function [uc,omegac] = ucon(x,t,tau,taufix,Ahat,Ahat_inv,lb_tau,ub_tau,f,g,pred,ubound,odeopts)
     num_inps = 1;
     % CONTROLLER PARAMS
-    qpopts = optimoptions('quadprog','Display','none','ConstraintTolerance',1e-4);
-    clk_1 = 10.0;
-    clk_2 = 10.0;
-    fact_om = 1.0;
+    qpopts = optimoptions('quadprog','Display','none','ConstraintTolerance',1e-5);
+
+    % clk_1 = 1.0;
+    % clk_2 = 1.0;
+    % fact_om = 1;
+    % uref = 0;
+    % omegaref = -0.5*Ahat_inv*tau;
+
+    % clk_1 = 1.0;
+    % clk_2 = 10.0;
+    % fact_om = 10;
+    % uref = 0;
+    % omegaref = -0.75*Ahat_inv*tau;
+
+    % clk_1 = 0.1;
+    % clk_2 = 10.0;
+    % fact_om = 1;
+    % uref = 0;
+    % omegaref = -0.25*Ahat_inv*tau;
+
+    clk_1 = 0.5;
+    clk_2 = 1.0;
+    fact_om = 1e-1;
     uref = 0;
-    omegaref = -1.0*Ahat_inv*tau;
+    omegaref = -0.5*Ahat_inv*tau;
 
     % COMPUTE VALUE & GRADIENT
     vf = [];
     dvf_x = [];
     dvf_t = [];
     dvf_dtau = [];
+    eps = 0.1;
     for i=1:length(pred)
-        if t< pred(i).te(tau)
+        if t<pred(i).te(tau)-eps
             vf(end+1,1) = value_fun(f,g,pred(i).h,pred(i).xc,pred(i).radius,ubound,odeopts,x,t-pred(i).tr(tau));
             [dvf_x(end+1,1), dvf_t(end+1,1)] = value_fun_grad(f,g,pred(i).h,pred(i).xc,pred(i).radius,ubound,odeopts,x,t-pred(i).tr(tau));
             dvf_dtau(end+1,:) = dvf_t(end,1)*pred(i).dtr_dtau;
@@ -402,8 +434,13 @@ function [uc,omegac] = ucon(x,t,tau,Ahat,Ahat_inv,lb_tau,ub_tau,f,g,pred,ubound,
     end
 
     num_ind = size(Ahat,2);
-    lb = [-ubound;-inf(num_ind,1)];
-    ub = [+ubound; inf(num_ind,1)];
+    lbumega = -inf(num_ind,1);
+    lbumega(taufix==1) = 0;
+    ubumega = inf(num_ind,1);
+    ubumega(taufix==1) = 0;
+    lb = [-ubound; lbumega];
+    ub = [+ubound; ubumega];
+
 
     H = 2*eye(length(lb));    
     F = -2*[uref; omegaref];
@@ -422,14 +459,13 @@ function [uc,omegac] = ucon(x,t,tau,Ahat,Ahat_inv,lb_tau,ub_tau,f,g,pred,ubound,
     end
 
     A = -[dvf_x*g(x), temp_der];
-    B = (dvf_x*f(x)+dvf_t)+clk_1.*(vf);
+    B = (dvf_x*f(x) + dvf_t) + clk_1.*(vf);
 
-    
     lb_hat = Ahat*lb_tau;
     ub_hat = Ahat*ub_tau;
 
-    Om = -(Ahat_inv*tau - lb_tau).*(Ahat_inv*tau - ub_tau);
-    dOm = diag(-(tau - lb_hat) -(tau - ub_hat));
+    Om = -1*(Ahat_inv*tau - lb_tau).*(Ahat_inv*tau - ub_tau);
+    dOm = 1*diag(-(tau - lb_hat) -(tau - ub_hat));
 
     A = [A; zeros(num_ind,1),-Ahat_inv*dOm*(Ahat)];
     B = [B; clk_2*Om];
