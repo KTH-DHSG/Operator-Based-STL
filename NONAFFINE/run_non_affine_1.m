@@ -6,7 +6,7 @@ odeopts = odeset('RelTol',1e-3,'AbsTol',1e-4);
 odeopts_pl = odeset('RelTol',1e-5,'AbsTol',1e-5,'Refine',5);
 RGB = orderedcolors("gem12");
 haxis_lims = [-1;3.5];
-filename = 'results_nonaff_1.gif';
+filename = 'f5b.gif';
 savegif = 0;
 
 % TIME DOMAIN BOUNDS
@@ -25,9 +25,9 @@ ubound = 0.5;
 
 % TIME STL PARAMS 
 t01 = 0;
-t02 = 25;
+t02 = 10;
 
-t11 = 3.0;
+t11 = 0.0;
 t12 = 4.0;
 
 t21 = 1.0;
@@ -185,7 +185,7 @@ max_dx = 5e-3;
 % VARIABLES FOR PLOTTING 
 iter = 1;
 plotiter = 10;
-L1 = legend(legend_text,'Location','northwest','NumColumns',3);
+L1 = legend(legend_text,'Location','southeast','NumColumns',3);
 L1.Interpreter = 'latex'; L1.FontSize = 14;
 T = title(title_text);
 T.Interpreter = 'latex';
@@ -208,6 +208,7 @@ L2.Interpreter = 'latex'; L2.FontSize = 16;
 %% ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 %                           MAIN SIMULATION LOOP
 % ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+sumt1 = 0;
 while tcur < tfinal
 
     % COMPUTE CONTROLLER INPUT
@@ -241,7 +242,8 @@ while tcur < tfinal
     if pred(2).sat_flag
             beta_curr = pred(2).te(taucur);
             beta_prime = t02;
-            if beta_curr<beta_prime
+            sumt1 = sumt1+taucur(1);
+            if sumt1<beta_prime
                 pred(1).a0 = pred(1).a0_ini + beta_curr;
                 pred(1).a0_list = pred(1).a0_list_ini + beta_curr;
               
@@ -274,6 +276,8 @@ while tcur < tfinal
 
                 lb_tau = [0;0;0];
                 ub_tau = [t12 - t11; t22 - t21; t32 - t31];
+                 tau_hat = ub_tau;
+                taucur = 0.5*Ahat*tau_hat;
 
             end
     end
@@ -334,7 +338,7 @@ function [uc,omegac] = ucon(x,t,tau,Ahat,Ahat_inv,lb_tau,ub_tau,f,g,root_g_sq,pr
     clk_2 = 10.0;
     fact_om = 1e-4;
     uref = 0;
-    omegaref = -0.5*Ahat_inv*tau;
+    omegaref = -0.1*Ahat_inv*tau;
 
     % COMPUTE VALUE & GRADIENT
     vf = [];

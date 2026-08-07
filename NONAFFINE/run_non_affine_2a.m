@@ -6,7 +6,7 @@ odeopts = odeset('RelTol',1e-3,'AbsTol',1e-4);
 odeopts_pl = odeset('RelTol',1e-5,'AbsTol',1e-5,'Refine',5);
 RGB = orderedcolors("gem12");
 haxis_lims = [0;3.5];
-filename = 'results_nonaff_2a.gif';
+filename = 'f6a.gif';
 savegif = 0;
 
 % TIME DOMAIN BOUNDS
@@ -22,9 +22,9 @@ f = @(x) -tanh(x);
 ubound = 0.5;
 % TIME STL PARAMS 
 t01 = 0;
-t02 = 25;
+t02 = 10;
 
-t11 = 3.0;
+t11 = 0.0;
 t12 = 4.0;
 
 t21 = 1.0;
@@ -50,7 +50,7 @@ pred(1).h = @(x) 10*(pred(1).radius^2 - (x - pred(1).xc).^2);
 
 pred(1).a0 = t01 + t11;
 pred(1).a0_list = [t11; t11];
-pred(1).a0_ini = pred(1).a0;
+pred(1).a0 = pred(1).a0;
 pred(1).a0_list_ini = pred(1).a0_list;
 
 pred(1).tr_list_depends = [1,0,0,0,0;
@@ -82,7 +82,7 @@ pred(2).h = @(x) 10*(pred(2).radius^2 - (x - pred(2).xc).^2);
 
 pred(2).a0 = t01 + t11 + t21 + t31;
 pred(2).a0_list = [t11; t11 + t21; t11 + t21 + t31];
-pred(2).a0_ini = pred(2).a0;
+pred(2).a0 = pred(2).a0;
 pred(2).a0_list_ini = pred(2).a0_list;
 
 pred(2).tr_list_depends = [0,0,1,0,0;
@@ -117,7 +117,7 @@ pred(3).h = @(x) 10*(pred(3).radius^2 - (x - pred(3).xc).^2);
 
 pred(3).a0 = t01 + t11 + t21 + t31 + t41;
 pred(3).a0_list = [t11; t11+t21; t11+t21+t31; t11+t21+t41];
-pred(3).a0_ini = pred(3).a0;
+pred(3).a0 = pred(3).a0;
 pred(3).a0_list_ini = pred(3).a0_list;
 
 pred(3).tr_list_depends = [0,0,1,0,0;
@@ -216,7 +216,7 @@ max_dx = 5e-3;
 iter = 1;
 plotiter = 15;
 L1 = legend(legend_text,'Location','northeast','NumColumns',3);
-L1.Interpreter = 'latex'; L1.FontSize = 14;
+L1.Interpreter = 'latex'; L1.FontSize = 16;
 T = title(title_text);
 T.Interpreter = 'latex';
 T.FontSize = 16;
@@ -234,7 +234,7 @@ end
 axis([t0,tfinal, min(lb_tau), max(ub_tau)]);
 L2 = legend(legend_text2,'Location','northeast','NumColumns',length(tau_hat));
 L2.Interpreter = 'latex'; L2.FontSize = 16;
-
+sumt1 = 0;
 %% ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 %                           MAIN SIMULATION LOOP
 % ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -270,17 +270,18 @@ while tcur < tfinal
 
     % CUSTOM FOR REPEAT
     if pred(2).sat_flag || pred(3).sat_flag
-            beta_curr = tcur;
+            beta_curr = taucur(1);
             beta_prime = t02;
-            if beta_curr<beta_prime
-                pred(1).a0 = pred(1).a0_ini + beta_curr;
-                pred(1).a0_list = pred(1).a0_list_ini + beta_curr;
+            sumt1 = sumt1 + taucur(1);
+            if sumt1 <t02
+                pred(1).a0 = pred(1).a0 + beta_curr;
+                pred(1).a0_list = pred(1).a0_list + beta_curr;
               
                 pred(1).tr = @(tau) pred(1).a0 + pred(1).a1*tau;
                 pred(1).tr_list = @(tau)  pred(1).a0_list + pred(1).tr_list_depends*tau;
                 
-                pred(1).b0 = pred(1).b0_ini + beta_curr;
-                pred(1).b0_list = pred(1).b0_list_ini + beta_curr;
+                pred(1).b0 = pred(1).b0 + beta_curr;
+                pred(1).b0_list = pred(1).b0_list + beta_curr;
 
                 pred(1).te = @(tau) pred(1).b0 + pred(1).b1*tau;
                 pred(1).te_list = @(tau) pred(1).b0_list + pred(1).te_list_depends*tau;
@@ -288,14 +289,14 @@ while tcur < tfinal
                 pred(1).flag_r = 0*pred(1).flag_r;
                 pred(1).flag_e = 0*pred(1).flag_e;
                 % ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-                pred(2).a0 = pred(2).a0_ini + beta_curr;
-                pred(2).a0_list = pred(2).a0_list_ini + beta_curr;
+                pred(2).a0 = pred(2).a0 + beta_curr;
+                pred(2).a0_list = pred(2).a0_list + beta_curr;
               
                 pred(2).tr = @(tau) pred(2).a0 + pred(2).a1*tau;
                 pred(2).tr_list = @(tau)  pred(2).a0_list + pred(2).tr_list_depends*tau;
                 
-                pred(2).b0 = pred(2).b0_ini + beta_curr;
-                pred(2).b0_list = pred(2).b0_list_ini + beta_curr;
+                pred(2).b0 = pred(2).b0 + beta_curr;
+                pred(2).b0_list = pred(2).b0_list + beta_curr;
 
                 pred(2).te = @(tau) pred(2).b0 + pred(2).b1*tau;
                 pred(2).te_list = @(tau) pred(2).b0_list + pred(2).te_list_depends*tau;
@@ -303,14 +304,14 @@ while tcur < tfinal
                 pred(2).flag_r = 0*pred(2).flag_r;
                 pred(2).flag_e = 0*pred(2).flag_e;
                 % ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-                pred(3).a0 = pred(3).a0_ini + beta_curr;
-                pred(3).a0_list = pred(3).a0_list_ini + beta_curr;
+                pred(3).a0 = pred(3).a0 + beta_curr;
+                pred(3).a0_list = pred(3).a0_list + beta_curr;
               
                 pred(3).tr = @(tau) pred(3).a0 + pred(3).a1*tau;
                 pred(3).tr_list = @(tau)  pred(3).a0_list + pred(3).tr_list_depends*tau;
                 
-                pred(3).b0 = pred(3).b0_ini + beta_curr;
-                pred(3).b0_list = pred(3).b0_list_ini + beta_curr;
+                pred(3).b0 = pred(3).b0 + beta_curr;
+                pred(3).b0_list = pred(3).b0_list + beta_curr;
 
                 pred(3).te = @(tau) pred(3).b0 + pred(3).b1*tau;
                 pred(3).te_list = @(tau) pred(3).b0_list + pred(3).te_list_depends*tau;
@@ -320,6 +321,8 @@ while tcur < tfinal
 
                 lb_tau = [0;0;0];
                 ub_tau = [t12 - t11; t22 - t21; t32 - t31];
+                 tau_hat = ub_tau;
+                taucur = Ahat*tau_hat;
 
             end
     end
